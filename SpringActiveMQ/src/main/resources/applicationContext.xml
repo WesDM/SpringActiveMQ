@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+    http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context 
+    http://www.springframework.org/schema/context/spring-context.xsd"
+    xmlns:p="http://www.springframework.org/schema/p">
+
+
+	<context:component-scan base-package="com.wesdm.springactivemq" />
+
+	<bean id="messageConverter" class="org.springframework.jms.support.converter.SimpleMessageConverter" />
+	
+	<!-- =============================================== -->
+	<!-- JMS Common, Define JMS connectionFactory -->
+	<!-- =============================================== -->
+	<!-- Activemq connection factory -->
+	<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<!-- brokerURL, You may have different IP or port -->
+		<constructor-arg index="0" value="tcp://localhost:61616" />
+	</bean>
+
+	<!-- Pooled Spring connection factory -->
+	<bean id="connectionFactory"
+		class="org.springframework.jms.connection.CachingConnectionFactory">
+		<constructor-arg ref="amqConnectionFactory" />
+	</bean>
+
+	<!-- ======================================================= -->
+	<!-- Producer, define default destination and JmsTemplate -->
+	<!-- ======================================================= -->
+	<!-- Default Destination Queue Definition -->
+	<bean id="producerDestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<!-- name of the queue -->
+		<constructor-arg index="0" value="order-queue" />
+	</bean>
+
+	<!-- JmsTemplate Definition -->
+	<bean id="producerJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="defaultDestination" ref="producerDestination" />
+	</bean>
+
+	<!-- A POJO that implements the JMS message listener -->
+
+	<bean id="producerMessageListener" class="com.wesdm.springactivemq.producer.ProducerMessageReceiver" />
+
+	<!-- A pure Spring configuration for the message listener container -->
+
+	<bean id="producerListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+		p:connectionFactory-ref="connectionFactory" p:destination-ref="consumerDestination"
+		p:messageListener-ref="producerMessageListener" p:concurrentConsumers="10"
+		p:maxConcurrentConsumers="50" p:receiveTimeout="5000"
+		p:idleTaskExecutionLimit="10" p:idleConsumerLimit="5" />
+
+	<!-- ======================================================= -->
+	<!-- Consumer, define default destination and JmsTemplate -->
+	<!-- ======================================================= -->
+	<!-- Receiver Destination Queue Definition -->
+	<bean id="consumerDestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<!-- name of the queue -->
+		<constructor-arg index="0" value="order-response-queue" />
+	</bean>
+	
+		<!-- JmsTemplate Definition -->
+	<bean id="consumerJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="defaultDestination" ref="consumerDestination" />
+	</bean>
+
+	<!-- A POJO that implements the JMS message listener -->
+
+	<bean id="consumerMessageListener" class="com.wesdm.springactivemq.consumer.ConsumerMessageReceiver" />
+
+	<!-- A pure Spring configuration for the message listener container -->
+
+	<bean id="consumerListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+		p:connectionFactory-ref="connectionFactory" p:destination-ref="producerDestination"
+		p:messageListener-ref="consumerMessageListener" p:concurrentConsumers="10"
+		p:maxConcurrentConsumers="50" p:receiveTimeout="5000"
+		p:idleTaskExecutionLimit="10" p:idleConsumerLimit="5" />
+
+
+</beans>
