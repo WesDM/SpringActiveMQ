@@ -14,19 +14,22 @@ import com.wesdm.springactivemq.model.InventoryResponse;
 
 @Component
 public class ConsumerMessageSender {
+
+	@Autowired
+	JmsTemplate consumerJmsTemplate;
+
+	public void sendMessage(final InventoryResponse inventoryResponse) {
  
-    @Autowired
-    JmsTemplate consumerJmsTemplate;
- 
-    public void sendMessage(final InventoryResponse inventoryResponse) {
- 
-    	consumerJmsTemplate.send(new MessageCreator(){
-                @Override
-                public Message createMessage(Session session) throws JMSException{
-                    ObjectMessage objectMessage = session.createObjectMessage(inventoryResponse);
-                    return objectMessage;
-                }
-            });
+    	consumerJmsTemplate.send((session) -> { return session.createObjectMessage(inventoryResponse);});
+    		
+//    			
+//    			new MessageCreator(){
+//                @Override
+//                public Message createMessage(Session session) throws JMSException{
+//                    ObjectMessage objectMessage = session.createObjectMessage(inventoryResponse);
+//                    return objectMessage;
+//                }
+//            });
     }
- 
+
 }

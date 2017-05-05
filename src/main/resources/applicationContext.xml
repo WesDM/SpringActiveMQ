@@ -7,20 +7,23 @@
     http://www.springframework.org/schema/beans/spring-beans.xsd 
     http://www.springframework.org/schema/context 
     http://www.springframework.org/schema/context/spring-context.xsd"
-    xmlns:p="http://www.springframework.org/schema/p">
+	xmlns:p="http://www.springframework.org/schema/p">
 
 
 	<context:component-scan base-package="com.wesdm.springactivemq" />
 
-	<bean id="messageConverter" class="org.springframework.jms.support.converter.SimpleMessageConverter" />
-	
+	<bean id="messageConverter"
+		class="org.springframework.jms.support.converter.SimpleMessageConverter" />
+
 	<!-- =============================================== -->
 	<!-- JMS Common, Define JMS connectionFactory -->
 	<!-- =============================================== -->
 	<!-- Activemq connection factory -->
-	<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+	<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory"
+		depends-on="brokerService">
 		<!-- brokerURL, You may have different IP or port -->
-		<constructor-arg index="0" value="tcp://localhost:61616" />
+		<property name="brokerURL" value="tcp://localhost:61616" />
+		<!-- <constructor-arg index="0" value="tcp://localhost:61616?async=false" /> -->
 	</bean>
 
 	<!-- Pooled Spring connection factory -->
@@ -28,6 +31,22 @@
 		class="org.springframework.jms.connection.CachingConnectionFactory">
 		<constructor-arg ref="amqConnectionFactory" />
 	</bean>
+
+<!-- 	<bean id="brokerService" class="org.apache.activemq.broker.BrokerService" -->
+<!-- 		init-method="start" destroy-method="stop"> -->
+<!-- 		<property name="persistenceAdapter"> -->
+<!-- 			<bean class="org.apache.activemq.store.jdbc.JDBCPersistenceAdapter"> -->
+<!-- 				<property name="dataSource"> -->
+<!-- 					<bean -->
+<!-- 						class="com.springsource.open.jms.JmsTransactionAwareDataSourceProxy"> -->
+<!-- 						<property name="targetDataSource" ref="dataSource" /> -->
+<!-- 						<property name="jmsTemplate" ref="jmsTemplate" /> -->
+<!-- 					</bean> -->
+<!-- 				</property> -->
+<!-- 				<property name="createTablesOnStartup" value="true" /> -->
+<!-- 			</bean> -->
+<!-- 		</property> -->
+<!-- 	</bean> -->
 
 	<!-- ======================================================= -->
 	<!-- Producer, define default destination and JmsTemplate -->
@@ -46,15 +65,18 @@
 
 	<!-- A POJO that implements the JMS message listener -->
 
-	<bean id="producerMessageListener" class="com.wesdm.springactivemq.producer.ProducerMessageReceiver" />
+	<bean id="producerMessageListener"
+		class="com.wesdm.springactivemq.producer.ProducerMessageReceiver" />
 
 	<!-- A pure Spring configuration for the message listener container -->
 
-	<bean id="producerListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+	<bean id="producerListenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer"
 		p:connectionFactory-ref="connectionFactory" p:destination-ref="consumerDestination"
 		p:messageListener-ref="producerMessageListener" p:concurrentConsumers="10"
 		p:maxConcurrentConsumers="50" p:receiveTimeout="5000"
-		p:idleTaskExecutionLimit="10" p:idleConsumerLimit="5" />
+		p:idleTaskExecutionLimit="10" p:idleConsumerLimit="5"
+		p:sessionTransacted="true" />
 
 	<!-- ======================================================= -->
 	<!-- Consumer, define default destination and JmsTemplate -->
@@ -64,8 +86,8 @@
 		<!-- name of the queue -->
 		<constructor-arg index="0" value="order-response-queue" />
 	</bean>
-	
-		<!-- JmsTemplate Definition -->
+
+	<!-- JmsTemplate Definition -->
 	<bean id="consumerJmsTemplate" class="org.springframework.jms.core.JmsTemplate">
 		<property name="connectionFactory" ref="connectionFactory" />
 		<property name="defaultDestination" ref="consumerDestination" />
@@ -73,15 +95,18 @@
 
 	<!-- A POJO that implements the JMS message listener -->
 
-	<bean id="consumerMessageListener" class="com.wesdm.springactivemq.consumer.ConsumerMessageReceiver" />
+	<bean id="consumerMessageListener"
+		class="com.wesdm.springactivemq.consumer.ConsumerMessageReceiver" />
 
 	<!-- A pure Spring configuration for the message listener container -->
 
-	<bean id="consumerListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer"
+	<bean id="consumerListenerContainer"
+		class="org.springframework.jms.listener.DefaultMessageListenerContainer"
 		p:connectionFactory-ref="connectionFactory" p:destination-ref="producerDestination"
 		p:messageListener-ref="consumerMessageListener" p:concurrentConsumers="10"
 		p:maxConcurrentConsumers="50" p:receiveTimeout="5000"
-		p:idleTaskExecutionLimit="10" p:idleConsumerLimit="5" />
+		p:idleTaskExecutionLimit="10" p:idleConsumerLimit="5"
+		p:sessionTransacted="true" />
 
 
 </beans>
