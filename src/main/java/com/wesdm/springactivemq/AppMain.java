@@ -35,7 +35,7 @@ class ProducerApplication implements Runnable {
 		productService.sendProduct(product);
 
 		try {
-			Thread.sleep(60000);
+			Thread.sleep(6000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -62,7 +62,7 @@ class ConsumerApplication implements Runnable {
 	    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationContext.xml");
 		 
         try {
-            Thread.sleep(60000);
+            Thread.sleep(6000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

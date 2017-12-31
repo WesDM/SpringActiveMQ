@@ -19,11 +19,18 @@
 	<!-- JMS Common, Define JMS connectionFactory -->
 	<!-- =============================================== -->
 	<!-- Activemq connection factory -->
-	<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory"
-		depends-on="brokerService">
+	<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<!-- depends-on="brokerService"> -->
 		<!-- brokerURL, You may have different IP or port -->
 		<property name="brokerURL" value="tcp://localhost:61616" />
-		<!-- <constructor-arg index="0" value="tcp://localhost:61616?async=false" /> -->
+		<!-- <constructor-arg index="0" value="tcp://localhost:61616?async=false" 
+			/> -->
+		<property name="trustedPackages">
+<!-- 		this property required when sending ObjectMessage type -->
+			<list>
+				<value>com.wesdm.springactivemq.model</value>
+			</list>
+		</property>
 	</bean>
 
 	<!-- Pooled Spring connection factory -->
@@ -32,21 +39,21 @@
 		<constructor-arg ref="amqConnectionFactory" />
 	</bean>
 
-<!-- 	<bean id="brokerService" class="org.apache.activemq.broker.BrokerService" -->
-<!-- 		init-method="start" destroy-method="stop"> -->
-<!-- 		<property name="persistenceAdapter"> -->
-<!-- 			<bean class="org.apache.activemq.store.jdbc.JDBCPersistenceAdapter"> -->
-<!-- 				<property name="dataSource"> -->
-<!-- 					<bean -->
-<!-- 						class="com.springsource.open.jms.JmsTransactionAwareDataSourceProxy"> -->
-<!-- 						<property name="targetDataSource" ref="dataSource" /> -->
-<!-- 						<property name="jmsTemplate" ref="jmsTemplate" /> -->
-<!-- 					</bean> -->
-<!-- 				</property> -->
-<!-- 				<property name="createTablesOnStartup" value="true" /> -->
-<!-- 			</bean> -->
-<!-- 		</property> -->
-<!-- 	</bean> -->
+	<!-- <bean id="brokerService" class="org.apache.activemq.broker.BrokerService" -->
+	<!-- init-method="start" destroy-method="stop"> -->
+	<!-- <property name="persistenceAdapter"> -->
+	<!-- <bean class="org.apache.activemq.store.jdbc.JDBCPersistenceAdapter"> -->
+	<!-- <property name="dataSource"> -->
+	<!-- <bean -->
+	<!-- class="com.springsource.open.jms.JmsTransactionAwareDataSourceProxy"> -->
+	<!-- <property name="targetDataSource" ref="dataSource" /> -->
+	<!-- <property name="jmsTemplate" ref="jmsTemplate" /> -->
+	<!-- </bean> -->
+	<!-- </property> -->
+	<!-- <property name="createTablesOnStartup" value="true" /> -->
+	<!-- </bean> -->
+	<!-- </property> -->
+	<!-- </bean> -->
 
 	<!-- ======================================================= -->
 	<!-- Producer, define default destination and JmsTemplate -->
@@ -66,7 +73,7 @@
 	<!-- A POJO that implements the JMS message listener -->
 
 	<bean id="producerMessageListener"
-		class="com.wesdm.springactivemq.producer.ProducerMessageReceiver" />
+		class="com.wesdm.springactivemq.producer.jms.ProducerMessageReceiver" />
 
 	<!-- A pure Spring configuration for the message listener container -->
 
@@ -96,7 +103,7 @@
 	<!-- A POJO that implements the JMS message listener -->
 
 	<bean id="consumerMessageListener"
-		class="com.wesdm.springactivemq.consumer.ConsumerMessageReceiver" />
+		class="com.wesdm.springactivemq.consumer.jms.ConsumerMessageReceiver" />
 
 	<!-- A pure Spring configuration for the message listener container -->
 
